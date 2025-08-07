@@ -36,6 +36,7 @@ if (ArcadeSr == 4326) {  Console("4326 Spatial Reference - No conversion necessa
 // For Google Earth:
   // parameters: @{lat},{long},{alt}a,{dist}d,{fov}y,{heading}h,{tilt}t,{roll}r
   // https://support.google.com/earth/thread/185651102/how-to-set-up-the-command-line-url-line?hl=en
+  // https://support.google.com/earth/thread/12301934/build-hyperlink-with-gps-coordinates-to-open-place-marker-in-google-earth-for-web?hl=en#:~:text=we%27ve%20discussed%20this%20a%20bit%2C%20and%20one%20of%20the%20developers%20told%20us
     // @ will take the user straight to the location, zoomed to the dist specified.
     // a = height of pin above sea level; d = distance of zoom. 
     // 'search' instead of @, along with and ending parameter of '/.' will place a red pin at the location specified.
