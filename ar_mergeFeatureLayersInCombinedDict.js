@@ -1,60 +1,70 @@
 // Portal ID, Feature Layer, Feature Layer ID
 var p = Portal('https://arcgis-server.psc.local/portal');
 
-var qu_fl = 'd78e3575837c457b9b657257f1d89b71';  //qu_data
-var qu_id = 8;
+// portal ID
+var portal = Portal('https://arcgis-server.psc.local/portal');
 
-var fqu_fl = '68d26841830f43029f79f5b84961d28d'; // fqu_data
-var fqu_id = 7;
+//Feature Layer
+// cc_data Police
+var police = Filter(FeatureSetByPortalItem(portal,'25c4b7ec65be40128896d1aa76945c41',2,['rin','jurisdiction'],false),"jurisdiction IN('BP','CO','DA','DP','EP','GT','LM','OJ','PB','PH','PS','SH','SP','TF','TP')");
+// cl_data Fire
+var fire = Filter(FeatureSetByPortalItem(portal,'ce17a2ca4b3943be9cccd7b6966fd1c3',4,['rin','jurisdiction'],false),"jurisdiction IN('BF','CF','DF','DM','FF','FM','HF','LF','MF','NF','OF','PW','RF','SF','WF')");
+// cl_data EMS
+var ems = Filter(FeatureSetByPortalItem(portal,'ce17a2ca4b3943be9cccd7b6966fd1c3',4,['rin','jurisdiction'],false),"jurisdiction IN('EF','EM','OE')");
 
-var qu_fs = Filter(FeatureSetByPortalItem(p,qu_fl,qu_id,['*'],false),"hold_time IS NULL AND case_type <> 'INFO'"); //qu_fs
-var fqu_fs = Filter(FeatureSetByPortalItem(p,fqu_fl,fqu_id,['*'],false),"hold_time IS NULL AND call_type <> 'INFO'"); //fqu_fs
-
-// Create and populate a dictionary to combine data from the above feature layers
+// Create and populate a dictionary to combine data from the above feature layers:
 
 // Create empty array for features, feat object to populate array
 var features = [];
 var feat;
 
+// Loop through FeatureSets and populate feature array.
+for (var p in police) {
+    feat = {
+        attributes: {
+            force: 'Police',
+            rin: p['rin'],
+            jurisdiction: p['jurisdiction'],
+            //service_type: WHEN(p['jurisdiction']=='BP','P',p['jurisdiction']=='CO','C',p['jurisdiction']=='DA','P',p['jurisdiction']=='DP','P',p['jurisdiction']=='EP','P',p['jurisdiction']=='GT','P',p['jurisdiction']=='LM','P',p['jurisdiction']=='OJ','P',p['jurisdiction']=='PB','R',p['jurisdiction']=='PH','A',p['jurisdiction']=='PS','D',p['jurisdiction']=='SH','P',p['jurisdiction']=='SP','P',p['jurisdiction']=='TF','P',p['jurisdiction']=='TP','P',''),
+        },
+    };
+    Push(features, feat);
+};
+
+for (var f in fire) {
+    feat = {
+        attributes: {
+            force: 'Fire',
+            rin: f['rin'],
+            jurisdiction: f['jurisdiction'],
+            //service_type: WHEN(f['jurisdiction']=='BF','F',f['jurisdiction']=='CF','F',f['jurisdiction']=='DF','F',f['jurisdiction']=='DM','F',f['jurisdiction']=='FF','F',f['jurisdiction']=='FM','M',f['jurisdiction']=='HF','F',f['jurisdiction']=='LF','F',f['jurisdiction']=='MF','F',f['jurisdiction']=='NF','F',f['jurisdiction']=='OF','F',f['jurisdiction']=='PW','W',f['jurisdiction']=='RF','F',f['jurisdiction']=='SF','F',f['jurisdiction']=='WF','F',''),
+        },
+    };
+    Push(features, feat);
+};
+
+for (var e in ems) {
+    feat = {
+        attributes: {
+            force: 'EMS',
+            rin: e['rin'],
+            jurisdiction: e['jurisdiction'],
+            //service_type: WHEN(e['jurisdiction']=='EF','E',e['jurisdiction']=='EM','E',e['jurisdiction']=='OE','E',''),
+        },
+    };
+    Push(features, feat);
+};
+
 var combinedDict = {
     fields: [
-        { name: 'source', type: 'esriFieldTypeString' },
+        { name: 'force', type: 'esriFieldTypeString' },
+        { name: 'rin', type: 'esriFieldTypeString' },
         { name: 'jurisdiction', type: 'esriFieldTypeString' },
-        { name: 'hold_date', type: 'esriFieldTypeDate' },
-        { name: 'case_type', type: 'esriFieldTypeString' },
-        { name: 'call_type', type: 'esriFieldTypeString' },
-        { name: 'force_name', type: 'esriFieldTypeString' },
+        //{ name: 'service_type', type: 'esriFieldTypeString' },
     ],
     geometryType: '',
     features: features,
 };
 
-// Loop through each of the FeatureSets and populate feature array.
-for (var m in qu_fs) {
-    feat = {
-        attributes: {
-            source: 'qu_data Police',
-            jurisdiction: m['jurisdiction'],
-            hold_date: m['hold_date'],
-            case_type: m['case_type'],
-            force_name: When(m['jurisdiction']=='BF','SAN BRUNO FIRE',m['jurisdiction']=='BP','BROADMOOR POLICE',m['jurisdiction']=='CF','CENTRAL COUNTY FIRE',m['jurisdiction']=='CO',"CORONER'S OFFICE",m['jurisdiction']=='DA','DISTRICT ATTORNEY',m['jurisdiction']=='DF','COUNTY FIRE',m['jurisdiction']=='DM','DEPARTMENT OF EMERGENCY',m['jurisdiction']=='DP','DALY CITY POLICE',m['jurisdiction']=='EF','SOUTH SF CITY EMS',m['jurisdiction']=='EM','EMS',m['jurisdiction']=='EP','EAST PALO ALTO POLICE',m['jurisdiction']=='FF','SOUTH SF CITY FRE',m['jurisdiction']=='FM','FIRE MUTUAL AID',m['jurisdiction']=='GT','GANG TASK FORCE',m['jurisdiction']=='HF','COASTSIDE FIRE',m['jurisdiction']=='LF','COLMA FIRE',m['jurisdiction']=='LM','LAW MUTUAL AID',m['jurisdiction']=='MF','MENLO PARK FIRE',m['jurisdiction']=='NF','NORTH COUNTY FIRE',m['jurisdiction']=='OE','OTHER EMS',m['jurisdiction']=='OF','OTHER FIRE',m['jurisdiction']=='OJ','OTHER POLICE',m['jurisdiction']=='PB','PROBATION',m['jurisdiction']=='PH','ANIMAL CONTROL',m['jurisdiction']=='PS','PUBLIC SAFETY COMMUNICATIONS',m['jurisdiction']=='PW','PUBLIC WORKS',m['jurisdiction']=='RF','REDWOOD CITY FIRE',m['jurisdiction']=='SF','SAN MATEO CONSOLIDATED FIRE',m['jurisdiction']=='SH','SHERIFF OFFICE',m['jurisdiction']=='SP','SPECIAL EVENTS',m['jurisdiction']=='TF','NTF/VTTF',m['jurisdiction']=='TP','TRANSIT POLICE',m['jurisdiction']=='WF','WOODSIDE FIRE','other'),
-        },
-    };
-    Push(features, feat);
-};
-
-for (var p in fqu_fs) {
-    feat = {
-        attributes: {
-            source: 'fqu_data Fire',
-            jurisdiction: p['jurisdiction'],
-            hold_date: p['hold_date'],
-            case_type: p['call_type'],
-            force_name: When(m['jurisdiction']=='BF','SAN BRUNO FIRE',m['jurisdiction']=='BP','BROADMOOR POLICE',m['jurisdiction']=='CF','CENTRAL COUNTY FIRE',m['jurisdiction']=='CO',"CORONER'S OFFICE",m['jurisdiction']=='DA','DISTRICT ATTORNEY',m['jurisdiction']=='DF','COUNTY FIRE',m['jurisdiction']=='DM','DEPARTMENT OF EMERGENCY',m['jurisdiction']=='DP','DALY CITY POLICE',m['jurisdiction']=='EF','SOUTH SF CITY EMS',m['jurisdiction']=='EM','EMS',m['jurisdiction']=='EP','EAST PALO ALTO POLICE',m['jurisdiction']=='FF','SOUTH SF CITY FRE',m['jurisdiction']=='FM','FIRE MUTUAL AID',m['jurisdiction']=='GT','GANG TASK FORCE',m['jurisdiction']=='HF','COASTSIDE FIRE',m['jurisdiction']=='LF','COLMA FIRE',m['jurisdiction']=='LM','LAW MUTUAL AID',m['jurisdiction']=='MF','MENLO PARK FIRE',m['jurisdiction']=='NF','NORTH COUNTY FIRE',m['jurisdiction']=='OE','OTHER EMS',m['jurisdiction']=='OF','OTHER FIRE',m['jurisdiction']=='OJ','OTHER POLICE',m['jurisdiction']=='PB','PROBATION',m['jurisdiction']=='PH','ANIMAL CONTROL',m['jurisdiction']=='PS','PUBLIC SAFETY COMMUNICATIONS',m['jurisdiction']=='PW','PUBLIC WORKS',m['jurisdiction']=='RF','REDWOOD CITY FIRE',m['jurisdiction']=='SF','SAN MATEO CONSOLIDATED FIRE',m['jurisdiction']=='SH','SHERIFF OFFICE',m['jurisdiction']=='SP','SPECIAL EVENTS',m['jurisdiction']=='TF','NTF/VTTF',m['jurisdiction']=='TP','TRANSIT POLICE',m['jurisdiction']=='WF','WOODSIDE FIRE','other'),
-        },
-    };
-    Push(features, feat);
-};
-
 // Return dictionary cast as a feature set 
- return FeatureSet(combinedDict);
+return FeatureSet(combinedDict);
